@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Dự đoán Tài/Xỉu</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #0f0;
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      padding-top: 60px;
+    }
+    .container {
+      border: 2px solid #0f0;
+      border-radius: 12px;
+      width: 400px;
+      margin: 0 auto;
+      padding: 30px;
+      background: #111;
+      box-shadow: 0 0 15px #0f0;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      background: #222;
+      border: 1px solid #0f0;
+      color: #0f0;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px 20px;
+      background: #0f0;
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    #result {
+      font-size: 20px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="loginBox">
+    <h2>Đăng nhập bằng KEY</h2>
+    <input type="text" id="keyInput" placeholder="Nhập key">
+    <button onclick="kiemTraKey()">Tiếp tục</button>
+    <div id="loginError" style="color:red; margin-top:10px;"></div>
+  </div>
+
+  <div class="container" id="mainApp" style="display:none;">
+    <h2>Dự đoán Tài/Xỉu theo MD5</h2>
+    <input type="text" id="md5Input" placeholder="Nhập chuỗi MD5">
+    <button onclick="duDoan()">Dự đoán</button>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    // Lấy danh sách key từ localStorage
+    let danhSachKey = JSON.parse(localStorage.getItem('danhSachKey')) || [];
+
+    function kiemTraKey() {
+      const key = document.getElementById('keyInput').value.trim();
+      const now = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
+      const found = danhSachKey.find(k => k.key === key && k.expires >= now);
+      if (found) {
+        document.getElementById('loginBox').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
+      } else {
+        document.getElementById('loginError').textContent = 'KEY không hợp lệ hoặc đã hết hạn!';
+      }
+    }
+
+    function duDoan() {
+      const md5 = document.getElementById('md5Input').value.trim();
+      if (!/^[a-f0-9]{32}$/i.test(md5)) {
+        document.getElementById('result').innerText = "Chuỗi MD5 không hợp lệ!";
+        return;
+      }
+      // Lấy 3 ký tự cuối cùng và chuyển sang số
+      const xucxac1 = parseInt(md5.substring(0, 2), 16) % 6 + 1;
+      const xucxac2 = parseInt(md5.substring(2, 4), 16) % 6 + 1;
+      const xucxac3 = parseInt(md5.substring(4, 6), 16) % 6 + 1;
+      const tong = xucxac1 + xucxac2 + xucxac3;
+      const ketqua = (tong >= 11 && tong <= 17) ? 'Tài' : 'Xỉu';
+
+      document.getElementById('result').innerHTML = `
+        Xúc xắc: ${xucxac1} + ${xucxac2} + ${xucxac3} = ${tong} → <strong>${ketqua}</strong>
+      `;
+    }
+  </script>
+</body>
+</html>
